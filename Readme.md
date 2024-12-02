@@ -3,6 +3,36 @@
 **Author:** Aleksandr Mironov  
 **Role:** Manual QA at Keep-Calm digital agency
 
+## 0. BUGS
+
+| Bug ID | Description                                                                                                                                                            |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API-01 | Error 500 occurs when attempting to delete an existing user.                                                                                                           |
+| API-02 | Actual result: All games are returned, including the one with the exact title. Expected result: Only the game with the exact title should be included in the response. |
+| API-03 | Actual result: The nickname is not created. Expected result: All required fields should be created correctly.                                                          |
+| API-04 | Undefined                                                                                                                                                              |
+| API-05 | The user has an empty space in their wishlist, but it's impossible to add a new item due to a 422 Error.                                                               |
+| API-06 | The offset parameter is not working as expected. When used, all users are included in the response.                                                                    |
+| API-07 | Unable to retrieve a user with valid credentials.                                                                                                                      |
+| API-08 | The item is not removed from the wishlist as expected.                                                                                                                 |
+| API-09 | Error 404 occurs when making a request with valid `game_uuids`.                                                                                                        |
+| API-10 | The `category_UUID` in the games does not match the requested category.                                                                                                |
+| API-11 | The avatar URL is not saved in the database. It appears after the file is uploaded, but disappears when checking the "get user" endpoint.                              |
+| API-12 | The total order sum is always displayed as 0.                                                                                                                          |
+| API-13 | The items list is empty when changing an item in the cart.                                                                                                             |
+| API-14 | Undefined                                                                                                                                                              |
+| API-15 | The "clear" endpoint does not clear the item list as expected.                                                                                                         |
+| API-16 | It is possible to create a new order with duplicate items in the list. Expected result: A 400 error should be returned.                                                |
+| API-17 | The `limit` parameter is ignored by the endpoint.                                                                                                                      |
+| API-18 | The endpoint does not update the status to "canceled" as expected.                                                                                                     |
+| API-19 | The endpoint does not update the status to "canceled" as expected.                                                                                                     |
+| API-20 | Undefined                                                                                                                                                              |
+| API-21 | The total value is 0, which does not match the sum of the user's items.                                                                                                |
+| API-22 | Error 500 ("Internal server error") occurs when trying to create a new user. The user is not created.                                                                  |
+| API-23 | Despite using different `user_uuid` values, the same response (for the first user) is returned.                                                                        |
+| API-24 | Unable to log in with email and password after updating the user.                                                                                                      |
+| API-25 | The added item does not appear in the database when fetching the user's wishlist via the "get user's wishlist" endpoint.                                               |
+
 All automation has been created in Postman with Newman.
 
 To run the automation, you have two options:
