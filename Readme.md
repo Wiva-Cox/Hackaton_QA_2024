@@ -100,30 +100,102 @@ run the following command in your terminal:
     newman run path/to/your/postman_collection.json -e path/to/your/postman_environment.json -g path/to/your/postman_globals.json
     ```
 
-## 5 Here are all command for RELEASE (PROD) / DEV
+## 5 Here are all commands for RELEASE (PROD) / DEV
 
-## 5.1
+## 5.1 PROD commands
 
       ```bash
+    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
 
-    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json - g data/globals/workspace.postman_globals.json
+    newman run data/collections/api-02_Search_games.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
 
-    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json - g data/globals/workspace.postman_globals.json
+    newman run data/collections/api-03_Create_a_new_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-05_Add_an_item_to_users_wishlist.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-06_Get_list_of_users.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-07_Get_a_user_by_email_and_password.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-08_Remove_an_item_from_users_wishlist.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-09_Get_a_game.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-10_Get_games_by_category.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-11_Update_users_avatar.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-12_Get_a_cart.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-13_Change_an_item_in_the_cart.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-15_Clear_the_cart.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-16_Create_a_new_order.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-17_List_all_orders_for_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-18_Update_an_order_status.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-19_Get_a_payment.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-21_Get_list_of_users.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-22_Create_a_new_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-23_Get_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-24_Update_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-25_Add_an_item_to_users_wishlist.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
 
     ```
 
-## 5.1
+## 5.2 DEV commands
 
       ```bash
+    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
 
-    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json - g data/globals/workspace.postman_globals.json
+    newman run data/collections/api-02_Search_games.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
 
-    newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json - g data/globals/workspace.postman_globals.json
+    newman run data/collections/api-03_Create_a_new_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-05_Add_an_item_to_users_wishlist.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-06_Get_list_of_users.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-07_Get_a_user_by_email_and_password.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-08_Remove_an_item_from_users_wishlist.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-09_Get_a_game.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-10_Get_games_by_category.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-11_Update_users_avatar.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-12_Get_a_cart.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-13_Change_an_item_in_the_cart.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-15_Clear_the_cart.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-16_Create_a_new_order.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-17_List_all_orders_for_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-18_Update_an_order_status.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-19_Get_a_payment.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-21_Get_list_of_users.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-22_Create_a_new_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-23_Get_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-24_Update_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
+
+    newman run data/collections/api-25_Add_an_item_to_users_wishlist.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
 
     ```
-
-newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/DEV.postman_environment.json -g data/globals/workspace.postman_globals.json
-
-newman run data/collections/api-01_Delete_a_user.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
-
-newman run data/collections/api-11_Update_users_avatar.postman_collection.json -e data/environments/PROD.postman_environment.json -g data/globals/workspace.postman_globals.json
