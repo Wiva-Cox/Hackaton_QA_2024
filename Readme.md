@@ -25,7 +25,7 @@
 | API-16 | It is possible to create a new order with duplicate items in the list. Expected result: A 400 error should be returned.                                                |
 | API-17 | The `limit` parameter is ignored by the endpoint.                                                                                                                      |
 | API-18 | The endpoint does not update the status to "canceled" as expected.                                                                                                     |
-| API-19 | The endpoint does not update the status to "canceled" as expected.                                                                                                     |
+| API-19 | Keys: "created_At" and "updated_at" are missing in the response.                                                                                                       |
 | API-20 | Undefined                                                                                                                                                              |
 | API-21 | The total value is 0, which does not match the sum of the user's items.                                                                                                |
 | API-22 | Error 500 ("Internal server error") occurs when trying to create a new user. The user is not created.                                                                  |
