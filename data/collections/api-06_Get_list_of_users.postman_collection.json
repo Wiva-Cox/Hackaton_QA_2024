@@ -1,7 +1,8 @@
 {
 	"info": {
-		"_postman_id": "81138a6e-0a96-4f25-8b7d-b3d64381ddb4",
-		"name": "api-23 Get user",
+		"_postman_id": "ebd689d6-de6e-4619-9fae-16594235275d",
+		"name": "api-06_Get_list_of_users",
+		"description": "BUG: Offset is not working. With offset parameter there are all users in response",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "27502884"
 	},
@@ -39,6 +40,162 @@
 		},
 		{
 			"name": "Get all users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const usersUuids = [];",
+							"",
+							"response.users.forEach(users => {",
+							"    usersUuids.push(users.uuid);",
+							"    });",
+							"",
+							"console.log(\"All users uuids: \" + usersUuids);",
+							"",
+							"const user = usersUuids.shift();",
+							"console.log(\"User: \" + user)",
+							"",
+							"const total = response.meta.total;",
+							"var offset = total - 1;",
+							"",
+							"console.log(\"Offset: \" + offset)",
+							"",
+							"pm.environment.set(\"usersUuids\", usersUuids);",
+							"pm.environment.set(\"user\", user);",
+							"pm.environment.set(\"offset\", offset);",
+							"",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"meta\": {",
+							"      \"type\": \"object\",",
+							"      \"properties\": {",
+							"        \"total\": {",
+							"          \"type\": \"integer\"",
+							"        }",
+							"      },",
+							"      \"required\": [\"total\"]",
+							"    },",
+							"    \"users\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"avatar_url\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 0",
+							"          },",
+							"          \"email\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"email\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 5",
+							"          },",
+							"          \"name\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 1",
+							"          },",
+							"          \"nickname\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 2",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\",",
+							"            \"maxLength\": 36,",
+							"            \"minLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"email\", \"name\", \"nickname\", \"uuid\", \"avatar_url\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"meta\", \"users\"]",
+							"};",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"//const total = response.meta.total;",
+							"const usersCount = response.users.length;",
+							"",
+							"pm.test(\"Total is equal the sum of users\", function () {",
+							"    pm.expect(total).to.eql(usersCount);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all users with offset",
 			"event": [
 				{
 					"listen": "test",
@@ -132,15 +289,11 @@
 							"  console.log(validate.errors);",
 							"}",
 							"",
-							"// Total equsls length of response",
+							"// Only one object in response",
 							"",
-							"const total = response.meta.total;",
-							"const usersCount = response.users.length;",
-							"",
-							"pm.test(\"Total is equal the sum of users\", function () {",
-							"    pm.expect(total).to.eql(usersCount);",
-							"});",
-							""
+							"pm.test(\"Only one object in response\", function () {",
+							"    pm.expect(response.users.length).to.eql(1);",
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -167,7 +320,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{api-url}}/users?limit=100",
+					"raw": "{{api-url}}/users?limit=100&offset={{offset}}",
 					"host": [
 						"{{api-url}}"
 					],
@@ -178,80 +331,11 @@
 						{
 							"key": "limit",
 							"value": "100"
+						},
+						{
+							"key": "offset",
+							"value": "{{offset}}"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get user",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var response = pm.response.json();",
-							"",
-							"",
-							"",
-							"",
-							"",
-							"",
-							"// Requests automation",
-							"var usersUuids = pm.environment.get(\"usersUuids\");",
-							"if (usersUuids && usersUuids.length > 0) {",
-							"    pm.execution.setNextRequest(\"Get user\");",
-							"} else {",
-							"    pm.execution.setNextRequest(null);",
-							"}",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"var usersUuids = pm.environment.get(\"usersUuids\");",
-							"",
-							"if (usersUuids && usersUuids.length > 0) {",
-							"    var currentUser = usersUuids.shift();",
-							"",
-							"    pm.environment.set(\"usersUuids\", usersUuids);",
-							"",
-							"    pm.environment.set(\"userUuid\", currentUser);",
-							"",
-							"    console.log(usersUuids);",
-							"    console.log(currentUser);",
-							"} else {",
-							"    console.log(\"No users available\");",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "{{header}}",
-						"value": "{{task}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api-url}}/users/{{userUuid}}",
-					"host": [
-						"{{api-url}}"
-					],
-					"path": [
-						"users",
-						"{{userUuid}}"
 					]
 				}
 			},
@@ -293,7 +377,7 @@
 	"variable": [
 		{
 			"key": "task",
-			"value": "api-23",
+			"value": "api-6",
 			"type": "string"
 		}
 	]

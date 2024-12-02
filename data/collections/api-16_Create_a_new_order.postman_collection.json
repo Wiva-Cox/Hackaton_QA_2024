@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "a824f219-4e85-4c66-816a-ad1392266432",
-		"name": "api-01_Delete_a_user",
-		"description": "BUG: Error 500 while trying to delete existing user",
+		"_postman_id": "93b376f1-3cb8-4507-866f-76c23ccf0375",
+		"name": "api-16_Create_a_new_order",
+		"description": "BUG: It is possible to create a new order with duplicates in item list. Expected result is 400 error",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "27502884"
 	},
@@ -186,77 +186,108 @@
 			"response": []
 		},
 		{
-			"name": "Delete user",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "{{header}}",
-						"value": "{{task}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
-					"host": [
-						"{{api-url}}"
-					],
-					"path": [
-						"users",
-						"{{user}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Check user is deleted",
+			"name": "Get all games",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
+							"var response = pm.response.json();",
+							"const gamesUuids = [];",
+							"const gamesTitles = [];",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesUuids.push(games.uuid);",
+							"    });",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesTitles.push(games.title);",
+							"    });",
+							"",
+							"const game = gamesUuids.shift();",
+							"const gameTitle = gamesTitles.shift();",
+							"",
+							"console.log(\"All games uuids: \" + gamesUuids);",
+							"console.log(\"Game: \" + game)",
+							"console.log(\"Game title: \" + gameTitle)",
+							"",
+							"pm.environment.set(\"gamesUuids\", gamesUuids);",
+							"pm.environment.set(\"game\", game);",
+							"pm.environment.set(\"gameTitle\", gameTitle);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"// CLEAR ENVIRONMENT VARIABLES",
 							"",
-							"pm.environment.unset(\"usersUuids\");",
-							"pm.environment.unset(\"user\");"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\",",
+							"              \"minLength\": 36,",
+							"              \"maxLength\": 36",
+							"            },",
+							"            \"minItems\": 1",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"            \"minLength\": 36,",
+							"            \"maxLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"games\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const gamesCount = response.games.length;",
+							"",
+							"pm.test(\"Total is equal the sum of games\", function () {",
+							"    pm.expect(total).to.eql(gamesCount);",
+							"});",
+							"",
 							""
 						],
 						"type": "text/javascript",
@@ -274,13 +305,83 @@
 					}
 				],
 				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
+					"raw": "{{api-url}}/games?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create an order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"items\": [\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 23\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 34\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    },\n    {\n      \"item_uuid\": \"{{game}}\",\n      \"quantity\": 12\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/orders",
 					"host": [
 						"{{api-url}}"
 					],
 					"path": [
 						"users",
-						"{{user}}"
+						"{{user}}",
+						"orders"
 					]
 				}
 			},
@@ -322,7 +423,7 @@
 	"variable": [
 		{
 			"key": "task",
-			"value": "api-1",
+			"value": "api-16",
 			"type": "string"
 		}
 	]

@@ -1,0 +1,349 @@
+{
+	"info": {
+		"_postman_id": "ef938630-4395-4410-9e12-60d5d9ce9253",
+		"name": "api-02_Search_games",
+		"description": "BUG:\n\nActual result: all games in response including the one game with exact title\n\nExpected result: only one game with exact title",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27502884"
+	},
+	"item": [
+		{
+			"name": "Refresh DB",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 205\", function () {",
+							"    pm.response.to.have.status(205);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{api-url}}/setup",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"setup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all games",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const gamesUuids = [];",
+							"const gamesTitles = [];",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesUuids.push(games.uuid);",
+							"    });",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesTitles.push(games.title);",
+							"    });",
+							"",
+							"const game = gamesUuids.shift();",
+							"const gameTitle = gamesTitles.shift();",
+							"",
+							"console.log(\"All games uuids: \" + gamesUuids);",
+							"console.log(\"Game: \" + game)",
+							"console.log(\"Game title: \" + gameTitle)",
+							"",
+							"pm.environment.set(\"gamesUuids\", gamesUuids);",
+							"pm.environment.set(\"game\", game);",
+							"pm.environment.set(\"gameTitle\", gameTitle);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\",",
+							"              \"minLength\": 36,",
+							"              \"maxLength\": 36",
+							"            },",
+							"            \"minItems\": 1",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"            \"minLength\": 36,",
+							"            \"maxLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"games\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const gamesCount = response.games.length;",
+							"",
+							"pm.test(\"Total is equal the sum of games\", function () {",
+							"    pm.expect(total).to.eql(gamesCount);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/games?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search exact game",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"var expectedTitle = pm.environment.get(\"gameTitle\");",
+							"",
+							"// Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Only one object in response",
+							"pm.test(\"Only one object in response\", function () {",
+							"    pm.expect(response.games.length).to.eql(1);",
+							"});",
+							"",
+							"// Title of the object is equal to requested title",
+							"pm.test(\"Title of the object is equal to requested title\", function () {",
+							"    pm.expect(response.games[0].title).to.eql(expectedTitle);",
+							"});",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const gamesCount = response.games.length;",
+							"",
+							"pm.test(\"Total is equal the sum of games\", function () {",
+							"    pm.expect(total).to.eql(gamesCount);",
+							"});",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\",",
+							"              \"minLength\": 36,",
+							"              \"maxLength\": 36",
+							"            },",
+							"            \"minItems\": 1",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"            \"minLength\": 36,",
+							"            \"maxLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"games\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"",
+							"// CLEAR ENVIRONMENT VARIABLES",
+							"",
+							"pm.environment.unset(\"gamesUuids\");",
+							"pm.environment.unset(\"game\");",
+							"pm.environment.unset(\"gameTitle\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/games/search?query={{gameTitle}}",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games",
+						"search"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "{{gameTitle}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "task",
+			"value": "api-2",
+			"type": "string"
+		}
+	]
+}

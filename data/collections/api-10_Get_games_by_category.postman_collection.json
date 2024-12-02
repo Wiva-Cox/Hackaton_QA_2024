@@ -1,0 +1,335 @@
+{
+	"info": {
+		"_postman_id": "af1cd2d9-4987-414b-bb79-261d90a00ff2",
+		"name": "api-10_Get_games_by_category",
+		"description": "BUG: category_UUID inside the games doesn't match with requested category",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27502884"
+	},
+	"item": [
+		{
+			"name": "Refresh DB",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 205\", function () {",
+							"    pm.response.to.have.status(205);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{api-url}}/setup",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"setup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// get answer",
+							"const response = pm.response.json();",
+							"",
+							"// json shema validation",
+							"",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv({ allErrors: true });",
+							"",
+							"// JSON Schema",
+							"const schema = {",
+							"    type: \"object\",",
+							"    properties: {",
+							"        categories: {",
+							"            type: \"array\",",
+							"            items: {",
+							"                type: \"object\",",
+							"                properties: {",
+							"                    name: { type: \"string\", minLength: 1 , maxLenght: 100},",
+							"                    uuid: { type: \"string\", minLength: 36 , maxLenght: 36,pattern: \"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$\" }",
+							"                },",
+							"                required: [\"name\", \"uuid\"],",
+							"                additionalProperties: false",
+							"            }",
+							"        },",
+							"        meta: {",
+							"            type: \"object\",",
+							"            properties: {",
+							"                total: { type: \"integer\", minimum: 0 }",
+							"            },",
+							"            required: [\"total\"],",
+							"            additionalProperties: false",
+							"        }",
+							"    },",
+							"    required: [\"categories\", \"meta\"],",
+							"    additionalProperties: false",
+							"};",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const isValid = validate(response);",
+							"",
+							"pm.test(\"Response match JSON schema\", function () {",
+							"    pm.expect(isValid).to.be.true;",
+							"",
+							"    if (!isValid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"pm.test(\"Quantity of categories matches with total\", function () {",
+							"    const categoriesCount = response.categories.length;",
+							"    const total = response.meta.total;",
+							"",
+							"    pm.expect(categoriesCount).to.equal(total, `Quantity of categories (${categoriesCount}) don't match with total (${total})`);",
+							"});",
+							"",
+							"",
+							"const uuidArray = [];",
+							"",
+							"response.categories.forEach(category => {",
+							"    uuidArray.push(category.uuid);",
+							"    });",
+							"",
+							"console.log(\"UUIDs: \", uuidArray);",
+							"",
+							"pm.environment.set(\"categoryUuids\", uuidArray);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/categories?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"categories"
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Exact category",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"",
+							"// JSON Schema validation",
+							"",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv({ allErrors: true });",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"format\": \"uuid\"",
+							"            },",
+							"            \"minItems\": 1,",
+							"            \"uniqueItems\": true",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\"",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    },",
+							"    \"meta\": {",
+							"      \"type\": \"object\",",
+							"      \"properties\": {",
+							"        \"total\": {",
+							"          \"type\": \"integer\",",
+							"          \"minimum\": 0",
+							"        }",
+							"      },",
+							"      \"required\": [\"total\"]",
+							"    }",
+							"  },",
+							"  \"required\": [\"meta\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const isValid = validate(response);",
+							"",
+							"pm.test(\"The response matches the JSON schema\", function () {",
+							"    pm.expect(isValid).to.be.true;",
+							"",
+							"    if (!isValid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"// Category UUID validation",
+							"var currentCategory = pm.environment.get(\"category\");",
+							"",
+							"response.games.forEach(game => {",
+							"    pm.test(`Game \"${game.title}\" contains the expected category UUID`, function() {",
+							"        pm.expect(game.category_uuids).to.include(currentCategory);",
+							"    });",
+							"});",
+							"",
+							"",
+							"// Requests automation",
+							"var categories = pm.environment.get(\"categoryUuids\");",
+							"if (categories && categories.length > 0) {",
+							"    pm.execution.setNextRequest(\"Exact category\");",
+							"} else {",
+							"    pm.execution.setNextRequest(null);",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var categories = pm.environment.get(\"categoryUuids\");",
+							"",
+							"if (categories && categories.length > 0) {",
+							"    var currentCategory = categories.shift();",
+							"",
+							"    pm.environment.set(\"categoryUuids\", categories);",
+							"",
+							"    pm.environment.set(\"category\", currentCategory);",
+							"",
+							"    console.log(categories);",
+							"    console.log(currentCategory);",
+							"} else {",
+							"    console.log(\"No categories available\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/categories/{{category}}/games",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"categories",
+						"{{category}}",
+						"games"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "task",
+			"value": "api-10",
+			"type": "string"
+		}
+	]
+}

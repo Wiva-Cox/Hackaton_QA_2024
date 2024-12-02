@@ -1,0 +1,850 @@
+{
+	"info": {
+		"_postman_id": "5aeda94d-9204-4978-af0b-28dac84ec225",
+		"name": "api-13_Change_an_item_in_the_cart",
+		"description": "BUG: Empty litems list while changing an item in the cart",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27502884"
+	},
+	"item": [
+		{
+			"name": "Refresh DB",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 205\", function () {",
+							"    pm.response.to.have.status(205);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{api-url}}/setup",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"setup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const usersUuids = [];",
+							"",
+							"response.users.forEach(users => {",
+							"    usersUuids.push(users.uuid);",
+							"    });",
+							"",
+							"console.log(\"All users uuids: \" + usersUuids);",
+							"",
+							"const user = usersUuids.shift();",
+							"console.log(\"User: \" + user)",
+							"pm.environment.set(\"usersUuids\", usersUuids);",
+							"pm.environment.set(\"user\", user);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"meta\": {",
+							"      \"type\": \"object\",",
+							"      \"properties\": {",
+							"        \"total\": {",
+							"          \"type\": \"integer\"",
+							"        }",
+							"      },",
+							"      \"required\": [\"total\"]",
+							"    },",
+							"    \"users\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"avatar_url\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 0",
+							"          },",
+							"          \"email\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"email\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 5",
+							"          },",
+							"          \"name\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 1",
+							"          },",
+							"          \"nickname\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 2",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\",",
+							"            \"maxLength\": 36,",
+							"            \"minLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"email\", \"name\", \"nickname\", \"uuid\", \"avatar_url\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"meta\", \"users\"]",
+							"};",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const usersCount = response.users.length;",
+							"",
+							"pm.test(\"Total is equal the sum of users\", function () {",
+							"    pm.expect(total).to.eql(usersCount);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all games",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const gamesUuids = [];",
+							"const gamesTitles = [];",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesUuids.push(games.uuid);",
+							"    });",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesTitles.push(games.title);",
+							"    });",
+							"",
+							"const game = gamesUuids.shift();",
+							"const gameTitle = gamesTitles.shift();",
+							"",
+							"console.log(\"All games uuids: \" + gamesUuids);",
+							"console.log(\"Game: \" + game)",
+							"console.log(\"Game title: \" + gameTitle)",
+							"",
+							"pm.environment.set(\"gamesUuids\", gamesUuids);",
+							"pm.environment.set(\"game\", game);",
+							"pm.environment.set(\"gameTitle\", gameTitle);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\",",
+							"              \"minLength\": 36,",
+							"              \"maxLength\": 36",
+							"            },",
+							"            \"minItems\": 1",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"            \"minLength\": 36,",
+							"            \"maxLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"games\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const gamesCount = response.games.length;",
+							"",
+							"pm.test(\"Total is equal the sum of games\", function () {",
+							"    pm.expect(total).to.eql(gamesCount);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/games?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add an item to the cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//JSON Schema validation",
+							"",
+							"var schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"items\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"item_uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\"",
+							"          },",
+							"          \"quantity\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 1",
+							"          },",
+							"          \"total_price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          }",
+							"        },",
+							"        \"required\": [\"item_uuid\", \"quantity\", \"total_price\"]",
+							"      }",
+							"    },",
+							"    \"total_price\": {",
+							"      \"type\": \"integer\",",
+							"      \"minimum\": 0",
+							"    },",
+							"    \"user_uuid\": {",
+							"      \"type\": \"string\",",
+							"      \"format\": \"uuid\"",
+							"    }",
+							"  },",
+							"  \"required\": [\"items\", \"total_price\", \"user_uuid\"]",
+							"};",
+							"",
+							"var Ajv = require('ajv');",
+							"var ajv = new Ajv();",
+							"var validate = ajv.compile(schema);",
+							"",
+							"pm.test(\"Response matches to JSON schema\", function () {",
+							"    var valid = validate(response);",
+							"    pm.expect(valid).to.be.true;",
+							"    ",
+							"    if (!valid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"",
+							"// Check sum total_price",
+							"pm.test(\"Total price is equal to sum of all items\", function () {",
+							"    let itemsTotalPrice = response.items.reduce(function (sum, item) {",
+							"        return sum + parseInt(item.total_price, 10);",
+							"    }, 0);",
+							"",
+							"    console.log(\"Сумма total_price в items:\", itemsTotalPrice);",
+							"",
+							"    pm.expect(itemsTotalPrice).to.equal(response.total_price);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"item_uuid\": \"{{game}}\",\n  \"quantity\": 90\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/cart/add",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}",
+						"cart",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//JSON Schema validation",
+							"",
+							"var schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"items\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"item_uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\"",
+							"          },",
+							"          \"quantity\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 1",
+							"          },",
+							"          \"total_price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          }",
+							"        },",
+							"        \"required\": [\"item_uuid\", \"quantity\", \"total_price\"]",
+							"      }",
+							"    },",
+							"    \"total_price\": {",
+							"      \"type\": \"integer\",",
+							"      \"minimum\": 0",
+							"    },",
+							"    \"user_uuid\": {",
+							"      \"type\": \"string\",",
+							"      \"format\": \"uuid\"",
+							"    }",
+							"  },",
+							"  \"required\": [\"items\", \"total_price\", \"user_uuid\"]",
+							"};",
+							"",
+							"var Ajv = require('ajv');",
+							"var ajv = new Ajv();",
+							"var validate = ajv.compile(schema);",
+							"",
+							"pm.test(\"Response matches to JSON schema\", function () {",
+							"    var valid = validate(response);",
+							"    pm.expect(valid).to.be.true;",
+							"    ",
+							"    if (!valid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"// Check sum total_price",
+							"pm.test(\"Total price is equal to sum of all items\", function () {",
+							"    let itemsTotalPrice = response.items.reduce(function (sum, item) {",
+							"        return sum + parseInt(item.total_price, 10);",
+							"    }, 0);",
+							"",
+							"    console.log(\"Сумма total_price в items:\", itemsTotalPrice);",
+							"",
+							"    pm.expect(itemsTotalPrice).to.equal(response.total_price);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/cart",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}",
+						"cart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change an item in the cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//JSON Schema validation",
+							"",
+							"var schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"items\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"item_uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\"",
+							"          },",
+							"          \"quantity\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 1",
+							"          },",
+							"          \"total_price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          }",
+							"        },",
+							"        \"required\": [\"item_uuid\", \"quantity\", \"total_price\"]",
+							"      }",
+							"    },",
+							"    \"total_price\": {",
+							"      \"type\": \"integer\",",
+							"      \"minimum\": 0",
+							"    },",
+							"    \"user_uuid\": {",
+							"      \"type\": \"string\",",
+							"      \"format\": \"uuid\"",
+							"    }",
+							"  },",
+							"  \"required\": [\"items\", \"total_price\", \"user_uuid\"]",
+							"};",
+							"",
+							"var Ajv = require('ajv');",
+							"var ajv = new Ajv();",
+							"var validate = ajv.compile(schema);",
+							"",
+							"pm.test(\"Response matches to JSON schema\", function () {",
+							"    var valid = validate(response);",
+							"    pm.expect(valid).to.be.true;",
+							"    ",
+							"    if (!valid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"// Check sum total_price",
+							"pm.test(\"Total price is equal to sum of all items\", function () {",
+							"    let itemsTotalPrice = response.items.reduce(function (sum, item) {",
+							"        return sum + parseInt(item.total_price, 10);",
+							"    }, 0);",
+							"",
+							"    console.log(\"Сумма total_price в items:\", itemsTotalPrice);",
+							"",
+							"    pm.expect(itemsTotalPrice).to.equal(response.total_price);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"item_uuid\": \"{{game}}\",\n  \"quantity\": 22\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/cart/change",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}",
+						"cart",
+						"change"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//JSON Schema validation",
+							"",
+							"var schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"items\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"item_uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\"",
+							"          },",
+							"          \"quantity\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 1",
+							"          },",
+							"          \"total_price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          }",
+							"        },",
+							"        \"required\": [\"item_uuid\", \"quantity\", \"total_price\"]",
+							"      }",
+							"    },",
+							"    \"total_price\": {",
+							"      \"type\": \"integer\",",
+							"      \"minimum\": 0",
+							"    },",
+							"    \"user_uuid\": {",
+							"      \"type\": \"string\",",
+							"      \"format\": \"uuid\"",
+							"    }",
+							"  },",
+							"  \"required\": [\"items\", \"total_price\", \"user_uuid\"]",
+							"};",
+							"",
+							"var Ajv = require('ajv');",
+							"var ajv = new Ajv();",
+							"var validate = ajv.compile(schema);",
+							"",
+							"pm.test(\"Response matches to JSON schema\", function () {",
+							"    var valid = validate(response);",
+							"    pm.expect(valid).to.be.true;",
+							"    ",
+							"    if (!valid) {",
+							"        console.log(validate.errors);",
+							"    }",
+							"});",
+							"",
+							"// Check sum total_price",
+							"pm.test(\"Total price is equal to sum of all items\", function () {",
+							"    let itemsTotalPrice = response.items.reduce(function (sum, item) {",
+							"        return sum + parseInt(item.total_price, 10);",
+							"    }, 0);",
+							"",
+							"    console.log(\"Сумма total_price в items:\", itemsTotalPrice);",
+							"",
+							"    pm.expect(itemsTotalPrice).to.equal(response.total_price);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/cart",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}",
+						"cart"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "task",
+			"value": "api-13",
+			"type": "string"
+		}
+	]
+}

@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "a824f219-4e85-4c66-816a-ad1392266432",
-		"name": "api-01_Delete_a_user",
-		"description": "BUG: Error 500 while trying to delete existing user",
+		"_postman_id": "222e34ba-38e2-4600-97db-879fb669dc8a",
+		"name": "api-08_Remove_an_item_from_user's_wishlist",
+		"description": "BUG: Item is not removed from wishlist",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "27502884"
 	},
@@ -186,68 +186,33 @@
 			"response": []
 		},
 		{
-			"name": "Delete user",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "{{header}}",
-						"value": "{{task}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
-					"host": [
-						"{{api-url}}"
-					],
-					"path": [
-						"users",
-						"{{user}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Check user is deleted",
+			"name": "Get user's wishlist",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
+							"var response = pm.response.json();",
+							"",
+							"const itemsUuids = [];",
+							"",
+							"response.items.forEach(items => {",
+							"    itemsUuids.push(items.uuid);",
+							"    });",
+							"",
+							"console.log(\"All itms uuids: \" + itemsUuids);",
+							" ",
+							"const itemUuid = itemsUuids.shift();",
+							"pm.environment.set(\"itemUuid\", itemUuid)",
+							"",
+							"let quantityItems = response.items.length;",
+							"pm.environment.set(\"quantityItems\", quantityItems)",
+							"// Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
-							"",
-							"// CLEAR ENVIRONMENT VARIABLES",
-							"",
-							"pm.environment.unset(\"usersUuids\");",
-							"pm.environment.unset(\"user\");"
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -274,13 +239,85 @@
 					}
 				],
 				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
+					"raw": "{{api-url}}/users/{{user}}/wishlist",
 					"host": [
 						"{{api-url}}"
 					],
 					"path": [
 						"users",
-						"{{user}}"
+						"{{user}}",
+						"wishlist"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove game from wishlist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();",
+							"",
+							"let quantityItemsExpected = pm.environment.get(\"quantityItems\") - 1;",
+							"let quantityItemsAfter = response.items.length;",
+							"",
+							"//Tests",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Item deleted from wishlist\", function () {",
+							"    pm.expect(quantityItemsAfter).to.equal(quantityItemsExpected);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"item_uuid\": \"{{itemUuid}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}/wishlist/remove",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}",
+						"wishlist",
+						"remove"
 					]
 				}
 			},
@@ -322,7 +359,7 @@
 	"variable": [
 		{
 			"key": "task",
-			"value": "api-1",
+			"value": "api-8",
 			"type": "string"
 		}
 	]

@@ -1,0 +1,305 @@
+{
+	"info": {
+		"_postman_id": "e2db084e-b576-4871-9c91-d8bc513410dd",
+		"name": "api-09_Get_a_game",
+		"description": "BUG: Error 404 in response. Request with valid game_uuids",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27502884"
+	},
+	"item": [
+		{
+			"name": "Refresh DB",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 205\", function () {",
+							"    pm.response.to.have.status(205);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{api-url}}/setup",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"setup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all games",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const gamesUuids = [];",
+							"const gamesTitles = [];",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesUuids.push(games.uuid);",
+							"    });",
+							"",
+							"response.games.forEach(games => {",
+							"    gamesTitles.push(games.title);",
+							"    });",
+							"",
+							"const game = gamesUuids.shift();",
+							"const gameTitle = gamesTitles.shift();",
+							"",
+							"console.log(\"All games uuids: \" + gamesUuids);",
+							"console.log(\"Game: \" + game)",
+							"console.log(\"Game title: \" + gameTitle)",
+							"",
+							"pm.environment.set(\"gamesUuids\", gamesUuids);",
+							"pm.environment.set(\"game\", game);",
+							"pm.environment.set(\"gameTitle\", gameTitle);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"games\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"              \"type\": \"string\",",
+							"              \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\",",
+							"              \"minLength\": 36,",
+							"              \"maxLength\": 36",
+							"            },",
+							"            \"minItems\": 1",
+							"          },",
+							"          \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"          },",
+							"          \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"            \"minLength\": 36,",
+							"            \"maxLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"games\"]",
+							"}",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const gamesCount = response.games.length;",
+							"",
+							"pm.test(\"Total is equal the sum of games\", function () {",
+							"    pm.expect(total).to.eql(gamesCount);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/games?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get exact game",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"    \"type\": \"object\",",
+							"    \"properties\": {",
+							"        \"category_uuids\": {",
+							"            \"type\": \"array\",",
+							"            \"items\": {",
+							"                \"type\": \"string\",",
+							"                \"pattern\": \"^[a-fA-F0-9-]{36}$\"",
+							"            },",
+							"            \"minItems\": 1",
+							"        },",
+							"        \"price\": {",
+							"            \"type\": \"integer\",",
+							"            \"minimum\": 0",
+							"        },",
+							"        \"title\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 1,",
+							"            \"maxLength\": 100",
+							"        },",
+							"        \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"pattern\": \"^[a-fA-F0-9-]{36}$\"",
+							"        }",
+							"    },",
+							"    \"required\": [\"category_uuids\", \"price\", \"title\", \"uuid\"]",
+							"}",
+							"",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/games/{{game}}",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"games",
+						"{{game}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "task",
+			"value": "api-9",
+			"type": "string"
+		}
+	]
+}

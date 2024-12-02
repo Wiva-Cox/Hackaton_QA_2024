@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "a824f219-4e85-4c66-816a-ad1392266432",
-		"name": "api-01_Delete_a_user",
-		"description": "BUG: Error 500 while trying to delete existing user",
+		"_postman_id": "81138a6e-0a96-4f25-8b7d-b3d64381ddb4",
+		"name": "api-23_Get_user",
+		"description": "BUG: In every request with different user_uuid there is the same response (the first user)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "27502884"
 	},
@@ -56,6 +56,7 @@
 							"",
 							"const user = usersUuids.shift();",
 							"console.log(\"User: \" + user)",
+							"",
 							"pm.environment.set(\"usersUuids\", usersUuids);",
 							"pm.environment.set(\"user\", user);",
 							"",
@@ -186,66 +187,85 @@
 			"response": []
 		},
 		{
-			"name": "Delete user",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "{{header}}",
-						"value": "{{task}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
-					"host": [
-						"{{api-url}}"
-					],
-					"path": [
-						"users",
-						"{{user}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Check user is deleted",
+			"name": "Get user",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
+							"var response = pm.response.json();",
+							"var requestedUserUuid = pm.environment.get(\"userUuid\");",
+							"var responseUserUuid = response.uuid;",
+							"",
+							"//Tests",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
+							"",
+							"// Requested user equals response user",
+							"",
+							"pm.test(\"User in response is equal user in request (uuis)\", function () {",
+							"    pm.expect(responseUserUuid).to.eql(requestedUserUuid);",
+							"});",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"avatar_url\": {",
+							"      \"type\": \"string\",",
+							"      \"minLength\": 0",
+							"    },",
+							"    \"email\": {",
+							"      \"type\": \"string\",",
+							"      \"format\": \"email\",",
+							"      \"maxLength\": 100,",
+							"      \"minLength\": 5",
+							"    },",
+							"    \"name\": {",
+							"      \"type\": \"string\",",
+							"      \"maxLength\": 100,",
+							"      \"minLength\": 1",
+							"    },",
+							"    \"nickname\": {",
+							"      \"type\": \"string\",",
+							"      \"maxLength\": 100,",
+							"      \"minLength\": 2",
+							"    },",
+							"    \"uuid\": {",
+							"      \"type\": \"string\",",
+							"      \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+							"      \"maxLength\": 36,",
+							"      \"minLength\": 36",
+							"    }",
+							"  },",
+							"  \"required\": [\"avatar_url\", \"email\", \"name\", \"nickname\", \"uuid\"]",
+							"}",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Automation",
+							"var usersUuids = pm.environment.get(\"usersUuids\");",
+							"if (usersUuids && usersUuids.length > 0) {",
+							"    pm.execution.setNextRequest(\"Get user\");",
+							"} else {",
+							"    pm.execution.setNextRequest(null);",
+							"}",
 							"",
 							"// CLEAR ENVIRONMENT VARIABLES",
 							"",
+							"pm.environment.unset(\"userUuid\");",
 							"pm.environment.unset(\"usersUuids\");",
 							"pm.environment.unset(\"user\");"
 						],
@@ -257,7 +277,23 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							""
+							"var usersUuids = pm.environment.get(\"usersUuids\");",
+							"",
+							"console.log(usersUuids);",
+							"",
+							"if (usersUuids && usersUuids.length > 0) {",
+							"    var currentUser = usersUuids.shift();",
+							"    ",
+							"    console.log(usersUuids);",
+							"    console.log(currentUser);",
+							"",
+							"    pm.environment.set(\"usersUuids\", usersUuids);",
+							"    pm.environment.set(\"userUuid\", currentUser);",
+							"",
+							"    ",
+							"} else {",
+							"    console.log(\"No users available\");",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -274,13 +310,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api-url}}/users/{{user}}",
+					"raw": "{{api-url}}/users/{{userUuid}}",
 					"host": [
 						"{{api-url}}"
 					],
 					"path": [
 						"users",
-						"{{user}}"
+						"{{userUuid}}"
 					]
 				}
 			},
@@ -322,7 +358,7 @@
 	"variable": [
 		{
 			"key": "task",
-			"value": "api-1",
+			"value": "api-23",
 			"type": "string"
 		}
 	]
