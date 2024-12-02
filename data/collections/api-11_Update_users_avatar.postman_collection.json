@@ -1,0 +1,429 @@
+{
+  "info": {
+    "_postman_id": "6b401dc2-2548-4ab1-847e-d1d4920793b3",
+    "name": "api-11_Update_user's_avatar",
+    "description": "BUG: Avatar url don't save in DB. Avatar url apppears after loading the file but disappears when check get user endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27502884"
+  },
+  "item": [
+    {
+      "name": "Refresh DB",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 205\", function () {",
+              "    pm.response.to.have.status(205);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{api-url}}/setup",
+          "host": ["{{api-url}}"],
+          "path": ["setup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get all users",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();",
+              "const usersUuids = [];",
+              "",
+              "response.users.forEach(users => {",
+              "    usersUuids.push(users.uuid);",
+              "    });",
+              "",
+              "console.log(\"All users uuids: \" + usersUuids);",
+              "",
+              "const user = usersUuids.shift();",
+              "console.log(\"User: \" + user)",
+              "pm.environment.set(\"usersUuids\", usersUuids);",
+              "pm.environment.set(\"user\", user);",
+              "",
+              "// Tests",
+              "",
+              "// Status code",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "// JSON schema validation",
+              "const Ajv = require('ajv');",
+              "const ajv = new Ajv();",
+              "",
+              "const schema = {",
+              "  \"type\": \"object\",",
+              "  \"properties\": {",
+              "    \"meta\": {",
+              "      \"type\": \"object\",",
+              "      \"properties\": {",
+              "        \"total\": {",
+              "          \"type\": \"integer\"",
+              "        }",
+              "      },",
+              "      \"required\": [\"total\"]",
+              "    },",
+              "    \"users\": {",
+              "      \"type\": \"array\",",
+              "      \"items\": {",
+              "        \"type\": \"object\",",
+              "        \"properties\": {",
+              "          \"avatar_url\": {",
+              "            \"type\": \"string\",",
+              "            \"minLength\": 0",
+              "          },",
+              "          \"email\": {",
+              "            \"type\": \"string\",",
+              "            \"format\": \"email\",",
+              "            \"maxLength\": 100,",
+              "            \"minLength\": 5",
+              "          },",
+              "          \"name\": {",
+              "            \"type\": \"string\",",
+              "            \"maxLength\": 100,",
+              "            \"minLength\": 1",
+              "          },",
+              "          \"nickname\": {",
+              "            \"type\": \"string\",",
+              "            \"maxLength\": 100,",
+              "            \"minLength\": 2",
+              "          },",
+              "          \"uuid\": {",
+              "            \"type\": \"string\",",
+              "            \"format\": \"uuid\",",
+              "            \"maxLength\": 36,",
+              "            \"minLength\": 36",
+              "          }",
+              "        },",
+              "        \"required\": [\"email\", \"name\", \"nickname\", \"uuid\", \"avatar_url\"]",
+              "      }",
+              "    }",
+              "  },",
+              "  \"required\": [\"meta\", \"users\"]",
+              "};",
+              "",
+              "const validate = ajv.compile(schema);",
+              "const valid = validate(response);",
+              "",
+              "pm.test('Response matches the JSON schema', function () {",
+              "  pm.expect(valid).to.be.true;",
+              "});",
+              "",
+              "if (!valid) {",
+              "  console.log(validate.errors);",
+              "}",
+              "",
+              "// Total equsls length of response",
+              "",
+              "const total = response.meta.total;",
+              "const usersCount = response.users.length;",
+              "",
+              "pm.test(\"Total is equal the sum of users\", function () {",
+              "    pm.expect(total).to.eql(usersCount);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "{{header}}",
+            "value": "{{task}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{api-url}}/users?limit=100",
+          "host": ["{{api-url}}"],
+          "path": ["users"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Load an avatar for a user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();",
+              "",
+              "var avatarUrl = response.avatar_url; ",
+              "pm.environment.set(\"avatarUrl\", avatarUrl)",
+              "",
+              "//Tests",
+              "",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// JSON Schema validation",
+              "",
+              "const Ajv = require('ajv');",
+              "const ajv = new Ajv({ allErrors: true });",
+              "",
+              "const schema = {",
+              "        \"type\": \"object\",",
+              "        \"properties\": {",
+              "            \"avatar_url\": {",
+              "                \"type\": \"string\",",
+              "                \"format\": \"uri\"",
+              "            },",
+              "            \"email\": {",
+              "                \"type\": \"string\",",
+              "                \"format\": \"email\"",
+              "            },",
+              "            \"name\": {",
+              "                \"type\": \"string\"",
+              "            },",
+              "            \"nickname\": {",
+              "                \"type\": \"string\"",
+              "            },",
+              "            \"uuid\": {",
+              "                \"type\": \"string\",",
+              "                \"pattern\": \"^[0-9a-fA-F-]{36}$\"",
+              "            }",
+              "        },",
+              "        \"required\": [\"avatar_url\", \"email\", \"name\", \"nickname\", \"uuid\"],",
+              "        \"additionalProperties\": false",
+              "    };",
+              "",
+              "const validate = ajv.compile(schema);",
+              "const isValid = validate(response);",
+              "",
+              "pm.test(\"The response matches the JSON schema\", function () {",
+              "    pm.expect(isValid).to.be.true;",
+              "",
+              "    if (!isValid) {",
+              "        console.log(validate.errors);",
+              "    }",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "{{header}}",
+            "value": "{{task}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "avatar_file",
+              "type": "file",
+              "src": "test_data/api-11.png"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{api-url}}/users/{{user}}/avatar",
+          "host": ["{{api-url}}"],
+          "path": ["users", "{{user}}", "avatar"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check avatar url is saved",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();",
+              "var requestedUserUuid = pm.environment.get(\"user\");",
+              "var responseUserUuid = response.uuid;",
+              "var requestedAvatarUrl = pm.environment.get(\"avatarUrl\");",
+              "var responseAvatarUrl = response.avatar_url;",
+              "",
+              "//Tests",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Requested user equals to response user",
+              "",
+              "pm.test(\"User in response is equal to user in request (uuis)\", function () {",
+              "    pm.expect(responseUserUuid).to.eql(requestedUserUuid);",
+              "});",
+              "",
+              "// Requested avatar URL equals to response avatar URL",
+              "",
+              "pm.test(\"Avatar URL in response is equal to avatar URL in request\", function () {",
+              "    pm.expect(responseAvatarUrl).to.eql(requestedAvatarUrl);",
+              "});",
+              "",
+              "// JSON schema validation",
+              "const Ajv = require('ajv');",
+              "const ajv = new Ajv();",
+              "",
+              "const schema = {",
+              "  \"type\": \"object\",",
+              "  \"properties\": {",
+              "    \"avatar_url\": {",
+              "      \"type\": \"string\",",
+              "      \"minLength\": 0",
+              "    },",
+              "    \"email\": {",
+              "      \"type\": \"string\",",
+              "      \"format\": \"email\",",
+              "      \"maxLength\": 100,",
+              "      \"minLength\": 5",
+              "    },",
+              "    \"name\": {",
+              "      \"type\": \"string\",",
+              "      \"maxLength\": 100,",
+              "      \"minLength\": 1",
+              "    },",
+              "    \"nickname\": {",
+              "      \"type\": \"string\",",
+              "      \"maxLength\": 100,",
+              "      \"minLength\": 2",
+              "    },",
+              "    \"uuid\": {",
+              "      \"type\": \"string\",",
+              "      \"pattern\": \"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$\",",
+              "      \"maxLength\": 36,",
+              "      \"minLength\": 36",
+              "    }",
+              "  },",
+              "  \"required\": [\"avatar_url\", \"email\", \"name\", \"nickname\", \"uuid\"]",
+              "}",
+              "const validate = ajv.compile(schema);",
+              "const valid = validate(response);",
+              "",
+              "pm.test('Response matches the JSON schema', function () {",
+              "  pm.expect(valid).to.be.true;",
+              "});",
+              "",
+              "if (!valid) {",
+              "  console.log(validate.errors);",
+              "}",
+              "",
+              "",
+              "// CLEAR ENVIRONMENT VARIABLES",
+              "",
+              "pm.environment.unset(\"userUuid\");",
+              "pm.environment.unset(\"usersUuids\");",
+              "pm.environment.unset(\"user\");"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "{{header}}",
+            "value": "{{task}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{api-url}}/users/{{user}}",
+          "host": ["{{api-url}}"],
+          "path": ["users", "{{user}}"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "task",
+      "value": "api-11",
+      "type": "string"
+    }
+  ]
+}
