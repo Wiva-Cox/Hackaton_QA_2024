@@ -1,0 +1,324 @@
+{
+	"info": {
+		"_postman_id": "a824f219-4e85-4c66-816a-ad1392266432",
+		"name": "api-01_Delete_a_user",
+		"description": "BUG: Error 500 while trying to delete existing user",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27502884"
+	},
+	"item": [
+		{
+			"name": "Refresh DB",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 205\", function () {",
+							"    pm.response.to.have.status(205);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{api-url}}/setup",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"setup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"const usersUuids = [];",
+							"",
+							"response.users.forEach(users => {",
+							"    usersUuids.push(users.uuid);",
+							"    });",
+							"",
+							"console.log(\"All users uuids: \" + usersUuids);",
+							"",
+							"const user = usersUuids.shift();",
+							"console.log(\"User: \" + user)",
+							"pm.environment.set(\"usersUuids\", usersUuids);",
+							"pm.environment.set(\"user\", user);",
+							"",
+							"// Tests",
+							"",
+							"// Status code",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// JSON schema validation",
+							"const Ajv = require('ajv');",
+							"const ajv = new Ajv();",
+							"",
+							"const schema = {",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"meta\": {",
+							"      \"type\": \"object\",",
+							"      \"properties\": {",
+							"        \"total\": {",
+							"          \"type\": \"integer\"",
+							"        }",
+							"      },",
+							"      \"required\": [\"total\"]",
+							"    },",
+							"    \"users\": {",
+							"      \"type\": \"array\",",
+							"      \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"          \"avatar_url\": {",
+							"            \"type\": \"string\",",
+							"            \"minLength\": 0",
+							"          },",
+							"          \"email\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"email\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 5",
+							"          },",
+							"          \"name\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 1",
+							"          },",
+							"          \"nickname\": {",
+							"            \"type\": \"string\",",
+							"            \"maxLength\": 100,",
+							"            \"minLength\": 2",
+							"          },",
+							"          \"uuid\": {",
+							"            \"type\": \"string\",",
+							"            \"format\": \"uuid\",",
+							"            \"maxLength\": 36,",
+							"            \"minLength\": 36",
+							"          }",
+							"        },",
+							"        \"required\": [\"email\", \"name\", \"nickname\", \"uuid\", \"avatar_url\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [\"meta\", \"users\"]",
+							"};",
+							"",
+							"const validate = ajv.compile(schema);",
+							"const valid = validate(response);",
+							"",
+							"pm.test('Response matches the JSON schema', function () {",
+							"  pm.expect(valid).to.be.true;",
+							"});",
+							"",
+							"if (!valid) {",
+							"  console.log(validate.errors);",
+							"}",
+							"",
+							"// Total equsls length of response",
+							"",
+							"const total = response.meta.total;",
+							"const usersCount = response.users.length;",
+							"",
+							"pm.test(\"Total is equal the sum of users\", function () {",
+							"    pm.expect(total).to.eql(usersCount);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users?limit=100",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete user",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check user is deleted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "{{header}}",
+						"value": "{{task}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api-url}}/users/{{user}}",
+					"host": [
+						"{{api-url}}"
+					],
+					"path": [
+						"users",
+						"{{user}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "task",
+			"value": "api-1",
+			"type": "string"
+		}
+	]
+}

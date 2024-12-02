@@ -1,0 +1,21 @@
+{
+	"id": "b5edbaf2-0ad7-4aef-8379-ed7843278e6e",
+	"values": [
+		{
+			"key": "token",
+			"value": "qahack2024:a.mironov@gmail.com",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "header",
+			"value": "X-Task-Id",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"name": "Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2024-12-01T18:03:24.525Z",
+	"_postman_exported_using": "Postman/11.21.0"
+}
